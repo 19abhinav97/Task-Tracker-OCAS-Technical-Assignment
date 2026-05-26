@@ -1,0 +1,53 @@
+## .NET / C# gitignore
+
+# Build outputs
+bin/
+obj/
+
+# Visual Studio artifacts
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+# Test results
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Publish output
+publish/
+
+# SQLite database files (generated at runtime)
+*.db
+*.db-shm
+*.db-wal
+
+# ASP.NET Core secrets
+**/appsettings.Development.json
+**/secrets.json
+
+# macOS
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*

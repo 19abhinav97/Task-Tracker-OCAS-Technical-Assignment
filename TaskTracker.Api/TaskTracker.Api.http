@@ -1,0 +1,44 @@
+@TaskTracker.Api_HostAddress = http://localhost:5227
+
+### Get all tasks
+GET {{TaskTracker.Api_HostAddress}}/tasks
+Accept: application/json
+
+###
+
+### Get a single task by ID
+GET {{TaskTracker.Api_HostAddress}}/tasks/1
+Accept: application/json
+
+###
+
+### Create a new task
+POST {{TaskTracker.Api_HostAddress}}/tasks
+Content-Type: application/json
+
+{
+  "title": "My first task",
+  "description": "Optional description here",
+  "status": 0,
+  "dueDate": "2026-06-01T00:00:00Z"
+}
+
+###
+
+### Update an existing task
+PUT {{TaskTracker.Api_HostAddress}}/tasks/1
+Content-Type: application/json
+
+{
+  "title": "Updated task title",
+  "description": "Updated description",
+  "status": 1,
+  "dueDate": "2026-06-15T00:00:00Z"
+}
+
+###
+
+### Delete a task
+DELETE {{TaskTracker.Api_HostAddress}}/tasks/1
+
+###

@@ -110,12 +110,14 @@ public class TaskServiceTests
         repoMock.Verify(r => r.UpdateAsync(It.IsAny<TaskItem>()), Times.Once);
     }
 
-    // 4. UpdateTask — set to Done with empty title (business rule)
+    // 4. UpdateTask — set to Done with empty title
+    // The general title-validation guard fires before the business-rule check,
+    // so ValidationException is thrown. Behaviour from the caller's side (400) is identical.
 
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task UpdateTask_SetStatusToDone_WithEmptyTitle_ThrowsBusinessRuleException(string title)
+    public async Task UpdateTask_SetStatusToDone_WithEmptyTitle_ThrowsValidationException(string title)
     {
         // Arrange
         var repoMock = new Mock<ITaskRepository>();
@@ -134,7 +136,7 @@ public class TaskServiceTests
         var service = CreateService(repoMock);
 
         // Act & Assert
-        await Assert.ThrowsAsync<BusinessRuleException>(
+        await Assert.ThrowsAsync<ValidationException>(
             () => service.UpdateTaskAsync(existingTask.Id, dto));
 
         repoMock.Verify(r => r.UpdateAsync(It.IsAny<TaskItem>()), Times.Never);
@@ -174,6 +176,36 @@ public class TaskServiceTests
             Status = (TaskTracker.Api.Models.TaskStatus)99
         };
 
+        repoMock
+            .Setup(r => r.GetByIdAsync(existingTask.Id))
+            .ReturnsAsync(existingTask);
+
+        var service = CreateService(repoMock);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ValidationException>(
+            () => service.UpdateTaskAsync(existingTask.Id, dto));
+
+        repoMock.Verify(r => r.UpdateAsync(It.IsAny<TaskItem>()), Times.Never);
+    }
+
+    // 7. UpdateTask — whitespace-only title is rejected for any status
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task UpdateTask_WithWhitespaceTitle_ThrowsValidationException(string title)
+    {
+        // Arrange
+        var repoMock = new Mock<ITaskRepository>();
+        var existingTask = SampleTask("Original title");
+
+        var dto = new UpdateTaskDto
+        {
+            Title  = title,
+            Status = TaskTracker.Api.Models.TaskStatus.Todo
+        };
+        
         repoMock
             .Setup(r => r.GetByIdAsync(existingTask.Id))
             .ReturnsAsync(existingTask);

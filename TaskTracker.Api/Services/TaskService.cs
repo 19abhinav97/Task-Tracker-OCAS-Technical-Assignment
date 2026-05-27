@@ -55,10 +55,14 @@ public class TaskService : ITaskService
         if (task is null)
             return null;
 
+        if (string.IsNullOrWhiteSpace(dto.Title))
+            throw new ValidationException("Title is required.");
+
         if (!Enum.IsDefined(typeof(Models.TaskStatus), dto.Status))
             throw new ValidationException($"'{(int)dto.Status}' is not a valid status. Accepted values: 0 (Todo), 1 (InProgress), 2 (Done).");
 
-        // A task cannot be set to Done with an empty title.
+        // A task cannot be marked Done with a blank title. The whitespace check 
+        // above already prevents that, but the guard is kept here to make the intent clear.
         if (dto.Status == Models.TaskStatus.Done && string.IsNullOrWhiteSpace(dto.Title))
             throw new BusinessRuleException(
                 "A task cannot be marked as Done when the title is empty or whitespace.");

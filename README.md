@@ -69,3 +69,17 @@ collision with `System.Threading.Tasks.TaskStatus` from the BCL.
    by trusted clients only; all endpoints are open by design.
 6. Duplicate task titles are permitted. `Id` is the unique identifier for a task — two
    tasks may share the same `Title`. No uniqueness constraint is enforced on `Title`.
+7. `GET /tasks` returns all records with no pagination or filtering. This is acceptable
+   for the scope of this assignment; a production API would add pagination to avoid 
+   unbounded result sets.
+8. Status transitions are unconstrained. Any valid status may be set to any other valid
+   status (e.g. `Done → Todo` is allowed). The only enforced rule is the one stated in
+   the assignment: a task cannot be marked `Done` with an empty title.
+9. There is no `UpdatedAt` timestamp. Only `CreatedAt` is tracked; last-upadated auditing
+   is out of scope for this assignment.
+10. No rate limiting is implemented. As an internal API consumed by trusted clients.
+11. An empty or whitespace-only `Title` is rejected on both create and update as a
+   general data-integrity rule. This makes the assignment's business rule ("cannot mark
+   Done with an empty title") always satisfied by the time the status is checked —
+   the explicit guard is kept in the service to make the requirement's intent clear,
+   but it is the title validation that enforces it in practice.

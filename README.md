@@ -67,3 +67,5 @@ collision with `System.Threading.Tasks.TaskStatus` from the BCL.
 4. Soft-delete is out of scope; `DELETE /tasks/{id}` permanently removes the record.
 5. No authentication or authorization is implemented. This is an internal API consumed
    by trusted clients only; all endpoints are open by design.
+6. Duplicate task titles are permitted. `Id` is the unique identifier for a task — two
+   tasks may share the same `Title`. No uniqueness constraint is enforced on `Title`.

@@ -8,13 +8,11 @@ using TaskTracker.Api.Services;
 namespace TaskTracker.Tests;
 
 /// <summary>
-/// Unit tests for <see cref="TaskService"/>.
+/// Unit tests for TaskService
 /// The repository is mocked so tests run without a real database.
 /// </summary>
 public class TaskServiceTests
 {
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     private static TaskService CreateService(Mock<ITaskRepository> repoMock)
         => new TaskService(repoMock.Object);
 
@@ -27,10 +25,10 @@ public class TaskServiceTests
         CreatedAt   = DateTime.UtcNow
     };
 
-    // ── 1. CreateTask — happy path ────────────────────────────────────────────
+    // 1. CreateTask — happy path
 
     [Fact]
-    public async System.Threading.Tasks.Task CreateTask_WithValidData_ReturnsCreatedTask()
+    public async Task CreateTask_WithValidData_ReturnsCreatedTask()
     {
         // Arrange
         var repoMock = new Mock<ITaskRepository>();
@@ -58,13 +56,13 @@ public class TaskServiceTests
         repoMock.Verify(r => r.CreateAsync(It.IsAny<TaskItem>()), Times.Once);
     }
 
-    // ── 2. CreateTask — empty title validation ────────────────────────────────
+    // 2. CreateTask — empty title validation
 
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
     [InlineData(null)]
-    public async System.Threading.Tasks.Task CreateTask_WithEmptyTitle_ThrowsValidationException(string? title)
+    public async Task CreateTask_WithEmptyTitle_ThrowsValidationException(string? title)
     {
         // Arrange
         var repoMock = new Mock<ITaskRepository>();
@@ -76,10 +74,10 @@ public class TaskServiceTests
         repoMock.Verify(r => r.CreateAsync(It.IsAny<TaskItem>()), Times.Never);
     }
 
-    // ── 3. UpdateTask — set to Done with valid title (happy path) ─────────────
+    // 3. UpdateTask — set to Done with valid title (happy path)
 
     [Fact]
-    public async System.Threading.Tasks.Task UpdateTask_SetStatusToDone_WithValidTitle_Succeeds()
+    public async Task UpdateTask_SetStatusToDone_WithValidTitle_Succeeds()
     {
         // Arrange
         var repoMock = new Mock<ITaskRepository>();
@@ -112,12 +110,12 @@ public class TaskServiceTests
         repoMock.Verify(r => r.UpdateAsync(It.IsAny<TaskItem>()), Times.Once);
     }
 
-    // ── 4. UpdateTask — set to Done with empty title (business rule) ──────────
+    // 4. UpdateTask — set to Done with empty title (business rule)
 
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public async System.Threading.Tasks.Task UpdateTask_SetStatusToDone_WithEmptyTitle_ThrowsBusinessRuleException(string title)
+    public async Task UpdateTask_SetStatusToDone_WithEmptyTitle_ThrowsBusinessRuleException(string title)
     {
         // Arrange
         var repoMock = new Mock<ITaskRepository>();
@@ -137,6 +135,53 @@ public class TaskServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<BusinessRuleException>(
+            () => service.UpdateTaskAsync(existingTask.Id, dto));
+
+        repoMock.Verify(r => r.UpdateAsync(It.IsAny<TaskItem>()), Times.Never);
+    }
+
+    // 5. CreateTask — invalid status value
+
+    [Fact]
+    public async Task CreateTask_WithInvalidStatus_ThrowsValidationException()
+    {
+        // Arrange
+        var repoMock = new Mock<ITaskRepository>();
+        var dto = new CreateTaskDto
+        {
+            Title  = "Valid title",
+            Status = (TaskTracker.Api.Models.TaskStatus)99
+        };
+        var service = CreateService(repoMock);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ValidationException>(() => service.CreateTaskAsync(dto));
+        repoMock.Verify(r => r.CreateAsync(It.IsAny<TaskItem>()), Times.Never);
+    }
+
+    // 6. UpdateTask — invalid status value
+
+    [Fact]
+    public async Task UpdateTask_WithInvalidStatus_ThrowsValidationException()
+    {
+        // Arrange
+        var repoMock = new Mock<ITaskRepository>();
+        var existingTask = SampleTask("Buy groceries");
+
+        var dto = new UpdateTaskDto
+        {
+            Title  = "Buy groceries",
+            Status = (TaskTracker.Api.Models.TaskStatus)99
+        };
+
+        repoMock
+            .Setup(r => r.GetByIdAsync(existingTask.Id))
+            .ReturnsAsync(existingTask);
+
+        var service = CreateService(repoMock);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ValidationException>(
             () => service.UpdateTaskAsync(existingTask.Id, dto));
 
         repoMock.Verify(r => r.UpdateAsync(It.IsAny<TaskItem>()), Times.Never);

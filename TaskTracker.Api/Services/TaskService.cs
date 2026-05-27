@@ -34,6 +34,9 @@ public class TaskService : ITaskService
         if (string.IsNullOrWhiteSpace(dto.Title))
             throw new ValidationException("Title is required.");
 
+        if (dto.Status.HasValue && !Enum.IsDefined(typeof(Models.TaskStatus), dto.Status.Value))
+            throw new ValidationException($"'{(int)dto.Status.Value}' is not a valid status. Accepted values: 0 (Todo), 1 (InProgress), 2 (Done).");
+
         var task = new TaskItem
         {
             Title       = dto.Title.Trim(),
@@ -51,6 +54,9 @@ public class TaskService : ITaskService
         var task = await _repository.GetByIdAsync(id);
         if (task is null)
             return null;
+
+        if (!Enum.IsDefined(typeof(Models.TaskStatus), dto.Status))
+            throw new ValidationException($"'{(int)dto.Status}' is not a valid status. Accepted values: 0 (Todo), 1 (InProgress), 2 (Done).");
 
         // A task cannot be set to Done with an empty title.
         if (dto.Status == Models.TaskStatus.Done && string.IsNullOrWhiteSpace(dto.Title))
